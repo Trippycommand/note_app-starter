@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
+
 import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:note_app/models/note.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EditScreen extends StatefulWidget {
   const EditScreen({super.key, this.note});
@@ -11,15 +13,37 @@ class EditScreen extends StatefulWidget {
   State<EditScreen> createState() => _EditScreenState();
 }
 
-class _EditScreenState extends State<EditScreen> {
+class _EditScreenState extends State<EditScreen> with WidgetsBindingObserver {
   TextEditingController _titleController = TextEditingController();
   TextEditingController _contentController = TextEditingController();
 
   @override
-  void initState() {
+  initState() {
+    super.initState();
+    
     if (widget.note != null) {
-      _titleController = TextEditingController(text: widget.note!.title);
+      WidgetsBinding.instance.addObserver(this);
+      final text = TextPreference.getText();
+      _titleController = TextEditingController(text: widget.note!.title,);
       _contentController = TextEditingController(text: widget.note!.content);
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppcycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) return;
+
+    final isBackground = state == AppLifecycleState.paused;
+    if (isBackground) {
+      TextPreference.setText(_titleController as String, _contentController);
     }
   }
 
@@ -87,5 +111,23 @@ class _EditScreenState extends State<EditScreen> {
         child: Icon(Icons.save),
       ),
     );
+  }
+}
+
+class TextPreference {
+  static final Future<SharedPreferences> _preferences =
+      SharedPreferences.getInstance();
+
+  static const _keyText = 'text';
+
+  static Future<void> setText(
+      String text, TextEditingController contentController) async {
+    final prefs = await _preferences;
+    await prefs.setString(_keyText, text);
+  }
+
+  static Future<String> getText() async {
+    final prefs = await _preferences;
+    return prefs.getString(_keyText) ?? '';
   }
 }

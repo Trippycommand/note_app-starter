@@ -41,8 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void delteNote(int index) {
     setState(() {
-      Note note = filterdNote[index];
-      sampleNotes.remove(note);
       filterdNote.removeAt(index);
     });
   }
