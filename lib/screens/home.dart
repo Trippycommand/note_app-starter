@@ -24,6 +24,19 @@ class _HomeScreenState extends State<HomeScreen> {
     filterdNote = sampleNotes;
   }
 
+  bool sorted = false;
+  List<Note> sortNotesByModifiedTime(List<Note> notes) {
+    if (sorted) {
+      notes.sort(
+        (a, b) => a.modifiedTime.compareTo(b.modifiedTime),
+      );
+    } else {
+      notes.sort((b, a) => a.modifiedTime.compareTo(b.modifiedTime));
+    }
+    sorted = !sorted;
+    return notes;
+  }
+
   getRandomColor() {
     Random random = Random();
     return backgroundColors[random.nextInt(backgroundColors.length)];
@@ -67,7 +80,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Color(0xff3A3B3C).withOpacity(.8),
                 ),
                 child: IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      setState(() {
+                        filterdNote = sortNotesByModifiedTime(filterdNote);
+                      });
+                    },
                     padding: EdgeInsets.all(0),
                     icon: Icon(
                       Icons.sort,
